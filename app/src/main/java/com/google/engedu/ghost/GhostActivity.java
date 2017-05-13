@@ -44,9 +44,11 @@ public class GhostActivity extends AppCompatActivity{
     private TextView ghostText;
     private TextView gameStatus;
     private String fragment;
+    private static boolean activeGame = false;
 
     static final String TEXT_FRAGMENT = "currentWord";
-    static final String GAME_STATE = "gameState";
+    //static final String GAME_STATE = "gameState";
+    static final String TURN = "userTurn";
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -54,6 +56,8 @@ public class GhostActivity extends AppCompatActivity{
 
         if(savedInstanceState != null){
             fragment = savedInstanceState.getString(TEXT_FRAGMENT);
+            userTurn = savedInstanceState.getBoolean(TURN);
+            activeGame = true;
         }else{
             fragment = "";
         }
@@ -64,7 +68,6 @@ public class GhostActivity extends AppCompatActivity{
 
         try {
             InputStream is = assetManager.open("words.txt");
-            //dictionary = new SimpleDictionary(is);
             dictionary = new FastDictionary(is);
         }catch(IOException e){
             System.out.println(e.getCause());
@@ -108,7 +111,9 @@ public class GhostActivity extends AppCompatActivity{
     public boolean onStart(View view) {
         challenge.setEnabled(true);
 
-        userTurn = random.nextBoolean();
+        if(!activeGame)
+            userTurn = random.nextBoolean();
+
         ghostText.setText(fragment);
 
         if (userTurn) {
@@ -123,7 +128,6 @@ public class GhostActivity extends AppCompatActivity{
     private void computerTurn() {
         if(fragment.length() >= 4 && dictionary.isWord(fragment)) {
             gameStatus.setText("COMPUTER WINS!");
-            fragment = "";
             challenge.setEnabled(false);
         }else {
 
@@ -132,7 +136,6 @@ public class GhostActivity extends AppCompatActivity{
             if (longer == null) {
                 //Challenge - no word can be made from user turn
                 gameStatus.setText("COMPUTER WINS!");
-                fragment = "";
                 challenge.setEnabled(false);
             } else {
                 fragment += longer.charAt(fragment.length());
@@ -167,7 +170,6 @@ public class GhostActivity extends AppCompatActivity{
     public void onChallenge(View v){
         if(fragment.length() >= 4 && dictionary.isWord(fragment)){
             gameStatus.setText("USER WINS!");
-            fragment = "";
             challenge.setEnabled(false);
         } else {
 
@@ -175,12 +177,10 @@ public class GhostActivity extends AppCompatActivity{
 
             if (longer == null) {
                 gameStatus.setText("USER WINS!");
-                fragment = "";
                 challenge.setEnabled(false);
             } else {
                 ghostText.setText(longer);
                 gameStatus.setText("COMPUTER WINS");
-                fragment = "";
                 challenge.setEnabled(false);
             }
         }
@@ -188,9 +188,27 @@ public class GhostActivity extends AppCompatActivity{
 
     public void onSaveInstanceState(Bundle savedInstanceState){
         savedInstanceState.putString(TEXT_FRAGMENT, fragment);
+        //savedInstanceState.putString(GAME_STATE, (String) gameStatus.getText());
+        savedInstanceState.putBoolean(TURN, userTurn);
     }
 
     public static boolean getTurn(){
         return userTurn;
+    }
+
+    public void reset(View v){
+        challenge.setEnabled(true);
+        activeGame = false;
+
+        userTurn = random.nextBoolean();
+        fragment = "";
+        ghostText.setText(fragment);
+
+        if (userTurn) {
+            gameStatus.setText(USER_TURN);
+        } else {
+            gameStatus.setText(COMPUTER_TURN);
+            computerTurn();
+        }
     }
 }

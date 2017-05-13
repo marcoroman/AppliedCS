@@ -58,7 +58,7 @@
         android:layout_below="@+id/gameStatus"
         android:layout_toEndOf="@+id/challenge"
         android:text="Reset"
-        android:onClick="onStart"/>
+        android:onClick="reset"/>
 
 
 </RelativeLayout>
